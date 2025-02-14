@@ -45,3 +45,20 @@ export type CodeKvoStatus =
   | 'FAILURE' // В Аварии
   | 'WARNING' // Предупреждение
   | 'NO_DATA' // Нет данных
+
+export type OsData = {
+  id: string
+  name?: string
+  failure: boolean
+  pointsCount?: number
+  droneCounts: KVOSurveillanceCounters
+}
+
+export type MarkerData = {
+  data: OsData
+  opacity: string
+  transform: string
+  marker: mapboxgl.Marker
+}
+
+export type MarkerDataMap = Record<string, MarkerData>

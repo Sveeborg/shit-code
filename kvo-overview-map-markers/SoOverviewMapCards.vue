@@ -1,0 +1,910 @@
+<script setup lang="ts">
+import mapboxgl from 'mapbox-gl'
+import { onMounted } from 'vue'
+import SoOverviewMapCard from './SoOverviewMapCard.vue'
+import type { KvoCard, KVOSurveillanceCounters } from './types'
+
+type MarkersDataMap = Record<
+  string,
+  { id: string; lngLat: GeoJSON.Position } & KVOSurveillanceCounters
+>
+
+const SOURCE_ID = 'goo'
+const SINGLE_SO_LAYER_ID = 'goo'
+
+const props = defineProps<{
+  map: mapboxgl.Map
+}>()
+
+// Моковые данные ОН, получаемые из бэкэнда
+const metasFromBackend: KvoCard[] = [
+  {
+    uid: 'ed2e9872-5f43-4f87-8f8b-4b6e93e3190c',
+    name: 'Лахта центр',
+    address: 'Высотная улица, 1, Санкт-Петербург, 197229',
+    status: 'OPERABLE',
+    lngLat: [30.178029316554472, 59.9870545893273],
+    droneCounts: {
+      all: 3,
+      own: 0,
+      violating: 2,
+      noPlan: 1,
+    },
+    shortHistory: [
+      {
+        id: 13147,
+        timestamp: '2025-01-24T07:34:40Z',
+        kvo: {
+          uid: 'ed2e9872-5f43-4f87-8f8b-4b6e93e3190c',
+          name: 'Лахта центр',
+        },
+        initiatorInfo: '-',
+        sourceInfo: 'Устройство',
+        description:
+          'Изменён атрибут radar-state. Новое значение: [В процессе подключения к сети]',
+        type: 'UNIT_ATTRIBUTE_CHANGED',
+        typeInfo: 'Изменение атрибута',
+        unit: {
+          uid: '76b101a3-e238-44df-90fb-7aaab0cd8ce2',
+          name: 'РЛС Енот',
+        },
+      },
+      {
+        id: 13146,
+        timestamp: '2025-01-24T07:34:39Z',
+        kvo: {
+          uid: 'ed2e9872-5f43-4f87-8f8b-4b6e93e3190c',
+          name: 'Лахта центр',
+        },
+        initiatorInfo: '-',
+        sourceInfo: 'Устройство',
+        description:
+          'Изменён атрибут radar-state. Новое значение: [Не подключен по сети]',
+        type: 'UNIT_ATTRIBUTE_CHANGED',
+        typeInfo: 'Изменение атрибута',
+        unit: {
+          uid: '76b101a3-e238-44df-90fb-7aaab0cd8ce2',
+          name: 'РЛС Енот',
+        },
+      },
+    ],
+  },
+  {
+    uid: '0b3d3303-906b-4c06-9482-b17f7d37a062',
+    name: 'Уфанефтехим',
+    address:
+      'Республика Башкортостан, городской округ Уфа, Орджоникидзевский район',
+    status: 'OPERABLE',
+    lngLat: [56.071853, 54.925856],
+    droneCounts: {
+      all: 3,
+      own: 0,
+      violating: 2,
+      noPlan: 1,
+    },
+    shortHistory: [
+      {
+        id: 13147,
+        timestamp: '2025-01-24T07:34:40Z',
+        kvo: {
+          uid: '0b3d3303-906b-4c06-9482-b17f7d37a062',
+          name: 'Уфанефтехим',
+        },
+        initiatorInfo: '-',
+        sourceInfo: 'Устройство',
+        description:
+          'Изменён атрибут radar-state. Новое значение: [В процессе подключения к сети]',
+        type: 'UNIT_ATTRIBUTE_CHANGED',
+        typeInfo: 'Изменение атрибута',
+        unit: {
+          uid: '0a3c84db-d21b-4e59-a86e-f5439e896814',
+          name: 'РЛС Енот',
+        },
+      },
+      {
+        id: 13146,
+        timestamp: '2025-01-24T07:34:39Z',
+        kvo: {
+          uid: '0b3d3303-906b-4c06-9482-b17f7d37a062',
+          name: 'Уфанефтехим',
+        },
+        initiatorInfo: '-',
+        sourceInfo: 'Устройство',
+        description:
+          'Изменён атрибут radar-state. Новое значение: [Не подключен по сети]',
+        type: 'UNIT_ATTRIBUTE_CHANGED',
+        typeInfo: 'Изменение атрибута',
+        unit: {
+          uid: '0a3c84db-d21b-4e59-a86e-f5439e896814',
+          name: 'РЛС Енот',
+        },
+      },
+      {
+        id: 13145,
+        timestamp: '2025-01-24T07:33:39Z',
+        kvo: {
+          uid: '0b3d3303-906b-4c06-9482-b17f7d37a062',
+          name: 'Уфанефтехим',
+        },
+        initiatorInfo: '-',
+        sourceInfo: 'Устройство',
+        description:
+          'Изменён атрибут radar-state. Новое значение: [В процессе подключения к сети]',
+        type: 'UNIT_ATTRIBUTE_CHANGED',
+        typeInfo: 'Изменение атрибута',
+        unit: {
+          uid: '0a3c84db-d21b-4e59-a86e-f5439e896814',
+          name: 'РЛС Енот',
+        },
+      },
+      {
+        id: 13144,
+        timestamp: '2025-01-24T07:33:38Z',
+        kvo: {
+          uid: '0b3d3303-906b-4c06-9482-b17f7d37a062',
+          name: 'Уфанефтехим',
+        },
+        initiatorInfo: '-',
+        sourceInfo: 'Устройство',
+        description:
+          'Изменён атрибут radar-state. Новое значение: [Не подключен по сети]',
+        type: 'UNIT_ATTRIBUTE_CHANGED',
+        typeInfo: 'Изменение атрибута',
+        unit: {
+          uid: '0a3c84db-d21b-4e59-a86e-f5439e896814',
+          name: 'РЛС Енот',
+        },
+      },
+      {
+        id: 13143,
+        timestamp: '2025-01-24T07:32:38Z',
+        kvo: {
+          uid: '0b3d3303-906b-4c06-9482-b17f7d37a062',
+          name: 'Уфанефтехим',
+        },
+        initiatorInfo: '-',
+        sourceInfo: 'Устройство',
+        description:
+          'Изменён атрибут radar-state. Новое значение: [В процессе подключения к сети]',
+        type: 'UNIT_ATTRIBUTE_CHANGED',
+        typeInfo: 'Изменение атрибута',
+        unit: {
+          uid: '0a3c84db-d21b-4e59-a86e-f5439e896814',
+          name: 'РЛС Енот',
+        },
+      },
+      {
+        id: 13142,
+        timestamp: '2025-01-24T07:32:37Z',
+        kvo: {
+          uid: '0b3d3303-906b-4c06-9482-b17f7d37a062',
+          name: 'Уфанефтехим',
+        },
+        initiatorInfo: '-',
+        sourceInfo: 'Устройство',
+        description:
+          'Изменён атрибут radar-state. Новое значение: [Не подключен по сети]',
+        type: 'UNIT_ATTRIBUTE_CHANGED',
+        typeInfo: 'Изменение атрибута',
+        unit: {
+          uid: '0a3c84db-d21b-4e59-a86e-f5439e896814',
+          name: 'РЛС Енот',
+        },
+      },
+      {
+        id: 13141,
+        timestamp: '2025-01-24T07:31:37Z',
+        kvo: {
+          uid: '0b3d3303-906b-4c06-9482-b17f7d37a062',
+          name: 'Уфанефтехим',
+        },
+        initiatorInfo: '-',
+        sourceInfo: 'Устройство',
+        description:
+          'Изменён атрибут radar-state. Новое значение: [В процессе подключения к сети]',
+        type: 'UNIT_ATTRIBUTE_CHANGED',
+        typeInfo: 'Изменение атрибута',
+        unit: {
+          uid: '0a3c84db-d21b-4e59-a86e-f5439e896814',
+          name: 'РЛС Енот',
+        },
+      },
+      {
+        id: 13140,
+        timestamp: '2025-01-24T07:31:36Z',
+        kvo: {
+          uid: '0b3d3303-906b-4c06-9482-b17f7d37a062',
+          name: 'Уфанефтехим',
+        },
+        initiatorInfo: '-',
+        sourceInfo: 'Устройство',
+        description:
+          'Изменён атрибут radar-state. Новое значение: [Не подключен по сети]',
+        type: 'UNIT_ATTRIBUTE_CHANGED',
+        typeInfo: 'Изменение атрибута',
+        unit: {
+          uid: '0a3c84db-d21b-4e59-a86e-f5439e896814',
+          name: 'РЛС Енот',
+        },
+      },
+      {
+        id: 13139,
+        timestamp: '2025-01-24T07:30:36Z',
+        kvo: {
+          uid: '0b3d3303-906b-4c06-9482-b17f7d37a062',
+          name: 'Уфанефтехим',
+        },
+        initiatorInfo: '-',
+        sourceInfo: 'Устройство',
+        description:
+          'Изменён атрибут radar-state. Новое значение: [В процессе подключения к сети]',
+        type: 'UNIT_ATTRIBUTE_CHANGED',
+        typeInfo: 'Изменение атрибута',
+        unit: {
+          uid: '0a3c84db-d21b-4e59-a86e-f5439e896814',
+          name: 'РЛС Енот',
+        },
+      },
+      {
+        id: 13138,
+        timestamp: '2025-01-24T07:30:35Z',
+        kvo: {
+          uid: '0b3d3303-906b-4c06-9482-b17f7d37a062',
+          name: 'Уфанефтехим',
+        },
+        initiatorInfo: '-',
+        sourceInfo: 'Устройство',
+        description:
+          'Изменён атрибут radar-state. Новое значение: [Не подключен по сети]',
+        type: 'UNIT_ATTRIBUTE_CHANGED',
+        typeInfo: 'Изменение атрибута',
+        unit: {
+          uid: '0a3c84db-d21b-4e59-a86e-f5439e896814',
+          name: 'РЛС Енот',
+        },
+      },
+      {
+        id: 13137,
+        timestamp: '2025-01-24T07:29:35Z',
+        kvo: {
+          uid: '0b3d3303-906b-4c06-9482-b17f7d37a062',
+          name: 'Уфанефтехим',
+        },
+        initiatorInfo: '-',
+        sourceInfo: 'Устройство',
+        description:
+          'Изменён атрибут radar-state. Новое значение: [В процессе подключения к сети]',
+        type: 'UNIT_ATTRIBUTE_CHANGED',
+        typeInfo: 'Изменение атрибута',
+        unit: {
+          uid: '0a3c84db-d21b-4e59-a86e-f5439e896814',
+          name: 'РЛС Енот',
+        },
+      },
+      {
+        id: 13136,
+        timestamp: '2025-01-24T07:29:34Z',
+        kvo: {
+          uid: '0b3d3303-906b-4c06-9482-b17f7d37a062',
+          name: 'Уфанефтехим',
+        },
+        initiatorInfo: '-',
+        sourceInfo: 'Устройство',
+        description:
+          'Изменён атрибут radar-state. Новое значение: [Не подключен по сети]',
+        type: 'UNIT_ATTRIBUTE_CHANGED',
+        typeInfo: 'Изменение атрибута',
+        unit: {
+          uid: '0a3c84db-d21b-4e59-a86e-f5439e896814',
+          name: 'РЛС Енот',
+        },
+      },
+      {
+        id: 13135,
+        timestamp: '2025-01-24T07:28:34Z',
+        kvo: {
+          uid: '0b3d3303-906b-4c06-9482-b17f7d37a062',
+          name: 'Уфанефтехим',
+        },
+        initiatorInfo: '-',
+        sourceInfo: 'Устройство',
+        description:
+          'Изменён атрибут radar-state. Новое значение: [В процессе подключения к сети]',
+        type: 'UNIT_ATTRIBUTE_CHANGED',
+        typeInfo: 'Изменение атрибута',
+        unit: {
+          uid: '0a3c84db-d21b-4e59-a86e-f5439e896814',
+          name: 'РЛС Енот',
+        },
+      },
+      {
+        id: 13134,
+        timestamp: '2025-01-24T07:28:33Z',
+        kvo: {
+          uid: '0b3d3303-906b-4c06-9482-b17f7d37a062',
+          name: 'Уфанефтехим',
+        },
+        initiatorInfo: '-',
+        sourceInfo: 'Устройство',
+        description:
+          'Изменён атрибут radar-state. Новое значение: [Не подключен по сети]',
+        type: 'UNIT_ATTRIBUTE_CHANGED',
+        typeInfo: 'Изменение атрибута',
+        unit: {
+          uid: '0a3c84db-d21b-4e59-a86e-f5439e896814',
+          name: 'РЛС Енот',
+        },
+      },
+      {
+        id: 13133,
+        timestamp: '2025-01-24T07:27:33Z',
+        kvo: {
+          uid: '0b3d3303-906b-4c06-9482-b17f7d37a062',
+          name: 'Уфанефтехим',
+        },
+        initiatorInfo: '-',
+        sourceInfo: 'Устройство',
+        description:
+          'Изменён атрибут radar-state. Новое значение: [В процессе подключения к сети]',
+        type: 'UNIT_ATTRIBUTE_CHANGED',
+        typeInfo: 'Изменение атрибута',
+        unit: {
+          uid: '0a3c84db-d21b-4e59-a86e-f5439e896814',
+          name: 'РЛС Енот',
+        },
+      },
+      {
+        id: 13132,
+        timestamp: '2025-01-24T07:27:32Z',
+        kvo: {
+          uid: '0b3d3303-906b-4c06-9482-b17f7d37a062',
+          name: 'Уфанефтехим',
+        },
+        initiatorInfo: '-',
+        sourceInfo: 'Устройство',
+        description:
+          'Изменён атрибут radar-state. Новое значение: [Не подключен по сети]',
+        type: 'UNIT_ATTRIBUTE_CHANGED',
+        typeInfo: 'Изменение атрибута',
+        unit: {
+          uid: '0a3c84db-d21b-4e59-a86e-f5439e896814',
+          name: 'РЛС Енот',
+        },
+      },
+      {
+        id: 13131,
+        timestamp: '2025-01-24T07:26:32Z',
+        kvo: {
+          uid: '0b3d3303-906b-4c06-9482-b17f7d37a062',
+          name: 'Уфанефтехим',
+        },
+        initiatorInfo: '-',
+        sourceInfo: 'Устройство',
+        description:
+          'Изменён атрибут radar-state. Новое значение: [В процессе подключения к сети]',
+        type: 'UNIT_ATTRIBUTE_CHANGED',
+        typeInfo: 'Изменение атрибута',
+        unit: {
+          uid: '0a3c84db-d21b-4e59-a86e-f5439e896814',
+          name: 'РЛС Енот',
+        },
+      },
+      {
+        id: 13130,
+        timestamp: '2025-01-24T07:26:31Z',
+        kvo: {
+          uid: '0b3d3303-906b-4c06-9482-b17f7d37a062',
+          name: 'Уфанефтехим',
+        },
+        initiatorInfo: '-',
+        sourceInfo: 'Устройство',
+        description:
+          'Изменён атрибут radar-state. Новое значение: [Не подключен по сети]',
+        type: 'UNIT_ATTRIBUTE_CHANGED',
+        typeInfo: 'Изменение атрибута',
+        unit: {
+          uid: '0a3c84db-d21b-4e59-a86e-f5439e896814',
+          name: 'РЛС Енот',
+        },
+      },
+      {
+        id: 13129,
+        timestamp: '2025-01-24T07:25:31Z',
+        kvo: {
+          uid: '0b3d3303-906b-4c06-9482-b17f7d37a062',
+          name: 'Уфанефтехим',
+        },
+        initiatorInfo: '-',
+        sourceInfo: 'Устройство',
+        description:
+          'Изменён атрибут radar-state. Новое значение: [В процессе подключения к сети]',
+        type: 'UNIT_ATTRIBUTE_CHANGED',
+        typeInfo: 'Изменение атрибута',
+        unit: {
+          uid: '0a3c84db-d21b-4e59-a86e-f5439e896814',
+          name: 'РЛС Енот',
+        },
+      },
+      {
+        id: 13128,
+        timestamp: '2025-01-24T07:25:30Z',
+        kvo: {
+          uid: '0b3d3303-906b-4c06-9482-b17f7d37a062',
+          name: 'Уфанефтехим',
+        },
+        initiatorInfo: '-',
+        sourceInfo: 'Устройство',
+        description:
+          'Изменён атрибут radar-state. Новое значение: [Не подключен по сети]',
+        type: 'UNIT_ATTRIBUTE_CHANGED',
+        typeInfo: 'Изменение атрибута',
+        unit: {
+          uid: '0a3c84db-d21b-4e59-a86e-f5439e896814',
+          name: 'РЛС Енот',
+        },
+      },
+    ],
+  },
+  {
+    uid: 'f81bfcd3-4ab5-4765-8d2c-649cbbbf87c7',
+    name: 'ОН1',
+    address: '',
+    status: 'OPERABLE',
+    lngLat: [30.13595466960166, 59.94076445945245],
+    droneCounts: {
+      all: 3,
+      own: 0,
+      violating: 2,
+      noPlan: 1,
+    },
+    shortHistory: [],
+  },
+  {
+    uid: '97267931-ad45-49b3-9249-773e4bf71870',
+    name: 'ОН2',
+    address: '',
+    status: 'OPERABLE',
+    lngLat: [30.37143404371605, 59.87812732901506],
+    droneCounts: {
+      all: 3,
+      own: 0,
+      violating: 2,
+      noPlan: 1,
+    },
+    shortHistory: [],
+  },
+  {
+    uid: 'd69110e2-3ac0-4c0f-8c02-f3b64d8dd0be',
+    name: 'ОН3',
+    address: '',
+    status: 'OPERABLE',
+    lngLat: [30.37144537477687, 60.02487660544972],
+    droneCounts: {
+      all: 3,
+      own: 0,
+      violating: 2,
+      noPlan: 1,
+    },
+    shortHistory: [],
+  },
+  {
+    uid: 'e483d682-e2c1-4e41-ad22-64d76ac23ea8',
+    name: 'ОН4',
+    address: '',
+    status: 'OPERABLE',
+    lngLat: [37.50150813955523, 55.493037356404244],
+    droneCounts: {
+      all: 3,
+      own: 0,
+      violating: 2,
+      noPlan: 1,
+    },
+    shortHistory: [],
+  },
+  {
+    uid: '64ea58e9-5334-40b9-9620-21a3c6deab80',
+    name: 'ОН5',
+    address: '',
+    status: 'OPERABLE',
+    lngLat: [36.83654710512545, 55.9955646335049],
+    droneCounts: {
+      all: 3,
+      own: 0,
+      violating: 2,
+      noPlan: 1,
+    },
+    shortHistory: [],
+  },
+  {
+    uid: '301f6d05-fc67-493f-995c-e659798b169d',
+    name: 'ОН6',
+    address: '',
+    status: 'OPERABLE',
+    lngLat: [36.88030011750004, 55.233034810124906],
+    droneCounts: {
+      all: 3,
+      own: 0,
+      violating: 2,
+      noPlan: 1,
+    },
+    shortHistory: [],
+  },
+  {
+    uid: '93154088-f99d-49c2-9abf-84d74b88a50b',
+    name: 'ОН7',
+    address: '',
+    status: 'OPERABLE',
+    lngLat: [136.64623758724082, 49.98774497040631],
+    droneCounts: {
+      all: 3,
+      own: 0,
+      violating: 2,
+      noPlan: 1,
+    },
+    shortHistory: [],
+  },
+  {
+    uid: '4a833b75-1db7-4f96-b99f-3858d36c97dc',
+    name: 'ОН8',
+    address: '',
+    status: 'OPERABLE',
+    lngLat: [134.8210145802389, 48.632294013139926],
+    droneCounts: {
+      all: 3,
+      own: 0,
+      violating: 2,
+      noPlan: 1,
+    },
+    shortHistory: [],
+  },
+  {
+    uid: '03b44ebe-e095-49f5-b83b-c41a8c85b7f6',
+    name: 'ОН9',
+    address: '',
+    status: 'OPERABLE',
+    lngLat: [142.76942714582083, 46.91834514401805],
+    droneCounts: {
+      all: 3,
+      own: 0,
+      violating: 2,
+      noPlan: 1,
+    },
+    shortHistory: [],
+  },
+  {
+    uid: 'e3d7a037-1adb-4b11-9813-259b75b5d3dd',
+    name: 'ОН10',
+    address: '',
+    status: 'OPERABLE',
+    lngLat: [129.96936765285818, 62.19561254911463],
+    droneCounts: {
+      all: 3,
+      own: 0,
+      violating: 2,
+      noPlan: 1,
+    },
+    shortHistory: [],
+  },
+  {
+    uid: '5f5b9719-f2c8-4638-a360-ba009e0ab6e8',
+    name: 'ОН11',
+    address: '',
+    status: 'OPERABLE',
+    lngLat: [101.54842716655287, 56.18520640483035],
+    droneCounts: {
+      all: 3,
+      own: 0,
+      violating: 2,
+      noPlan: 1,
+    },
+    shortHistory: [],
+  },
+  {
+    uid: '3bd5a56b-71f5-4a28-ade4-1c465b136725',
+    name: 'ОН12',
+    address: '',
+    status: 'OPERABLE',
+    lngLat: [85.07640432061214, 56.533044786334926],
+    droneCounts: {
+      all: 3,
+      own: 0,
+      violating: 2,
+      noPlan: 1,
+    },
+    shortHistory: [],
+  },
+  {
+    uid: 'd4a4ecdf-8c22-4bef-bfb5-3f0e00c2ff4b',
+    name: 'ОН13',
+    address: '',
+    status: 'OPERABLE',
+    lngLat: [65.36830686233174, 57.06034252071842],
+    droneCounts: {
+      all: 3,
+      own: 0,
+      violating: 2,
+      noPlan: 1,
+    },
+    shortHistory: [],
+  },
+  {
+    uid: '42be3fa2-3297-4589-8622-a25a759eff8d',
+    name: 'ОН14',
+    address: '',
+    status: 'OPERABLE',
+    lngLat: [60.35976591066944, 56.88646207398878],
+    droneCounts: {
+      all: 3,
+      own: 0,
+      violating: 2,
+      noPlan: 1,
+    },
+    shortHistory: [],
+  },
+  {
+    uid: '544e420e-7929-4c63-950b-4ebf8c0852c3',
+    name: 'ОН15',
+    address: '',
+    status: 'OPERABLE',
+    lngLat: [56.27017116877977, 58.16302997598942],
+    droneCounts: {
+      all: 3,
+      own: 0,
+      violating: 2,
+      noPlan: 1,
+    },
+    shortHistory: [],
+  },
+  {
+    uid: '1622e679-571d-4be2-a6b6-874e6f5cd702',
+    name: 'ОН16',
+    address: '',
+    status: 'OPERABLE',
+    lngLat: [69.1824556308137, 61.14319539872389],
+    droneCounts: {
+      all: 3,
+      own: 0,
+      violating: 2,
+      noPlan: 1,
+    },
+    shortHistory: [],
+  },
+  {
+    uid: 'b622a101-f7c0-4674-a77d-2ff3bf1f4b1d',
+    name: 'ОН17',
+    address: '',
+    status: 'OPERABLE',
+    lngLat: [73.79362068479287, 61.4673185174216],
+    droneCounts: {
+      all: 3,
+      own: 0,
+      violating: 2,
+      noPlan: 1,
+    },
+    shortHistory: [],
+  },
+  {
+    uid: '5dc6d3c3-8b65-4ecf-aa07-88e09d6d4d6d',
+    name: 'ОН18',
+    address: '',
+    status: 'OPERABLE',
+    lngLat: [48.96666808788896, 55.90778245283616],
+    droneCounts: {
+      all: 3,
+      own: 0,
+      violating: 2,
+      noPlan: 1,
+    },
+    shortHistory: [],
+  },
+  {
+    uid: '55cc6c0f-76b8-4570-8b9e-e38263aadfa8',
+    name: 'ОН19',
+    address: '',
+    status: 'OPERABLE',
+    lngLat: [43.47528678107176, 56.11895339638784],
+    droneCounts: {
+      all: 3,
+      own: 0,
+      violating: 2,
+      noPlan: 1,
+    },
+    shortHistory: [],
+  },
+  {
+    uid: 'c8fada19-3351-45a4-8fc8-5f4414433d30',
+    name: 'ОН20',
+    address: '',
+    status: 'OPERABLE',
+    lngLat: [40.049976611860274, 59.115320016947635],
+    droneCounts: {
+      all: 3,
+      own: 0,
+      violating: 2,
+      noPlan: 1,
+    },
+    shortHistory: [],
+  },
+  {
+    uid: '8da9416c-f910-4736-bda4-d1f6ff7b5469',
+    name: 'ОН21',
+    address: '',
+    status: 'OPERABLE',
+    lngLat: [53.65050939534501, 63.48207198796598],
+    droneCounts: {
+      all: 3,
+      own: 0,
+      violating: 2,
+      noPlan: 1,
+    },
+    shortHistory: [],
+  },
+  {
+    uid: '1868e453-14a7-4ddb-b411-83c75c9e1fa9',
+    name: 'ОН22',
+    address: '',
+    status: 'OPERABLE',
+    lngLat: [50.87061221786601, 61.64007019657794],
+    droneCounts: {
+      all: 3,
+      own: 0,
+      violating: 2,
+      noPlan: 1,
+    },
+    shortHistory: [],
+  },
+  {
+    uid: 'c274c81f-1707-407b-9441-073d1b973838',
+    name: 'ОН23',
+    address: '',
+    status: 'OPERABLE',
+    lngLat: [52.86714595195511, 67.6714286144215],
+    droneCounts: {
+      all: 3,
+      own: 0,
+      violating: 2,
+      noPlan: 1,
+    },
+    shortHistory: [],
+  },
+  {
+    uid: '145b816b-346c-41cd-a47b-88363136bcf7',
+    name: 'ОН24',
+    address: '',
+    status: 'OPERABLE',
+    lngLat: [40.434395793575106, 64.56527277914032],
+    droneCounts: {
+      all: 3,
+      own: 0,
+      violating: 2,
+      noPlan: 1,
+    },
+    shortHistory: [],
+  },
+]
+
+// Создание источника и слоя
+const addSourceAndLayer = (map: mapboxgl.Map) => {
+  const sourceCandidate = map.getSource(SOURCE_ID)
+  const singleSoLayerCandidate = map.getLayer(SINGLE_SO_LAYER_ID)
+
+  if (!sourceCandidate) {
+    map.addSource(SOURCE_ID, {
+      type: 'geojson',
+      data: { type: 'FeatureCollection', features: [] },
+      cluster: true,
+      clusterRadius: 80,
+      clusterProperties: {
+        all: ['+', ['get', 'all']],
+        own: ['+', ['get', 'own']],
+        violating: ['+', ['get', 'violating']],
+        noPlan: ['+', ['get', 'noPlan']],
+      },
+    })
+  }
+
+  if (!singleSoLayerCandidate) {
+    map.addLayer({
+      id: SINGLE_SO_LAYER_ID,
+      type: 'circle',
+      source: SOURCE_ID,
+      filter: ['!=', 'cluster', true],
+      paint: {
+        'circle-opacity': 0,
+        'circle-radius': 12,
+      },
+    })
+  }
+}
+
+// Обновление данных в слое
+const updateSourceData = (map: mapboxgl.Map, data: KvoCard[]) => {
+  const source = map.getSource(SOURCE_ID)
+  if (!source || source.type !== 'geojson') {
+    return
+  }
+
+  source.setData({
+    type: 'FeatureCollection',
+    features: data.map((item) => ({
+      type: 'Feature',
+      geometry: { type: 'Point', coordinates: item.lngLat },
+      properties: { id: item.uid, name: item.name, ...item.droneCounts },
+    })),
+  })
+}
+
+// Обновление маркеров
+const markers: Record<string, mapboxgl.Marker> = {}
+let markersOnScreen: Record<string, mapboxgl.Marker> = {}
+
+const updateMarkers = (map: mapboxgl.Map) => {
+  const newMarkers: Record<string, mapboxgl.Marker> = {}
+  const features = map.querySourceFeatures(SOURCE_ID)
+
+  for (const feature of features) {
+    if (feature.geometry.type !== 'Point') {
+      continue
+    }
+
+    const coords = feature.geometry.coordinates
+
+    const props = feature.properties
+    if (!props) {
+      continue
+    }
+
+    const id: number = props.cluster ? props.cluster_id : props.id
+    let marker = markers[id.toString()]
+    if (!marker) {
+      const el = document.createElement('div')
+
+      if (props.cluster) {
+        el.innerHTML = `<div style="width: 132px; height: 52px; background-color: #0009; border: 1px solid #fffa; border-radius: 8px; color: #fff; padding: 0 4px;">ОН: ${props.point_count}</div>`
+      } else {
+        el.innerHTML = `<div style="width: 132px; height: 52px; background-color: #0009; border: 1px solid #fffa; border-radius: 8px; color: #fff; padding: 0 4px;">ОН: ${props.name}</div>`
+      }
+
+      marker = markers[id] = new mapboxgl.Marker({
+        element: el,
+      }).setLngLat(coords)
+    }
+    newMarkers[id] = marker
+
+    if (!markersOnScreen[id]) marker.addTo(map)
+  }
+
+  for (const id in markersOnScreen) {
+    if (!newMarkers[id]) markersOnScreen[id].remove()
+  }
+
+  markersOnScreen = newMarkers
+}
+
+// TODO: доделать
+const handleZoomIn = () => {}
+
+onMounted(() => {
+  addSourceAndLayer(props.map)
+  updateSourceData(props.map, metasFromBackend)
+
+  props.map.on('render', () => {
+    if (!props.map.getSource(SOURCE_ID) || !props.map.isSourceLoaded(SOURCE_ID))
+      return
+    updateMarkers(props.map)
+  })
+})
+</script>
+
+<template>
+  <!-- <SoOverviewMapCard
+    v-for="item in cardsData"
+    :id="item.id"
+    :key="item.id"
+    ref="cardRefs"
+    :counts="{ all: 0, own: 0, noPlan: 0, violating: 0 }"
+    @zoom-in="handleZoomIn"
+  /> -->
+</template>
+
+<style scoped lang="ts"></style>
